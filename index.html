@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Flyers</title>
+</head>
+<body>
+</body>
+<style>
+	div{
+		height: 130px;
+		width: 130px;
+		position: absolute;
+		border: 1px solid black;
+	}
+</style>
+<script>
+let scrollHeight = Math.max(
+	document.body.scrollHeight, document.documentElement.scrollHeight,
+	document.body.offsetHeight, document.documentElement.offsetHeight,
+	document.body.clientHeight, document.documentElement.clientHeight
+);
+let scrollWidth = Math.max(
+	document.body.scrollWidth, document.documentElement.scrollWidth,
+	document.body.offsetWidth, document.documentElement.offsetWidth,
+	document.body.clientWidth, document.documentElement.clientWidth
+);
+//SCROLLHEIGHT AND SCROLLWIDTH MONITORING
+setInterval(()=>{
+	scrollHeight = Math.max(
+	  	document.body.scrollHeight, document.documentElement.scrollHeight,
+	  	document.body.offsetHeight, document.documentElement.offsetHeight,
+	 	document.body.clientHeight, document.documentElement.clientHeight
+	);
+	scrollWidth = Math.max(
+	  	document.body.scrollWidth, document.documentElement.scrollWidth,
+	  	document.body.offsetWidth, document.documentElement.offsetWidth,
+	  	document.body.clientWidth, document.documentElement.clientWidth
+	);
+}, 100);
+
+
+
+let allDivs = [];
+let spawnCounterX = 200;
+let spawnCounterY = 200;
+isUpper = false;
+let blinkNeon = 0;
+for (let i = 0.1; i < 0.6 + Math.random(); i+=0.1){
+	let box = document.createElement("div");
+	allDivs.push(box);
+}
+
+for (let i in allDivs){
+	//SEPARATE BOX FROM ANOTHER DIVS
+	let anotherDivs = [];
+	for (let i in allDivs){
+		anotherDivs.push(allDivs[i])
+	}
+	let box = anotherDivs.splice(i,1)[0];
+
+	//SPAWN BOX ON MAP
+	document.body.append(box);
+	box.style.left = `${spawnCounterX}px`;
+	box.style.top = `${spawnCounterY}px`;
+	if (spawnCounterX + 400 < scrollWidth){
+		spawnCounterX += 200;
+		if (isUpper){
+			spawnCounterY -= 50;
+			isUpper = false;
+		}else{
+			spawnCounterY += 50;
+			isUpper = true;
+		}
+	}else{
+		spawnCounterX = 200;
+		spawnCounterY += 200;
+	}
+
+	//CREATE RANDOM COLOR
+	if (Math.random() < 0.1){
+		box.style.background = `linear-gradient(${Math.floor(Math.random() * 361)}deg, ${createRGB()}, ${createRGB()})`;
+	}else{
+		box.style.background = createRGB();
+	}
+	//SET 10% CHANCE TO GET BOX SHADOW
+	if (Math.random() < 0.1){
+		if (Math.random() < 0.5){
+			let neonCounts = 0;
+			let neonDirection = "forward";
+			let color = createRGB();
+			setInterval(()=>{
+				box.style.boxShadow = `0 0 ${neonCounts}px ${color}`
+				if (neonDirection == "forward"){
+					if (neonCounts < 15){
+						neonCounts++;
+					}else{
+						neonCounts--;
+						neonDirection = "back"
+					}
+				}else if (neonDirection == "back"){
+					if (neonCounts > 0){
+						neonCounts--;
+					}else{
+						neonCounts++;
+						neonDirection = "forward"
+					}
+				}
+			}, 15 + Math.floor(Math.random() * 86));
+		}else{
+			box.style.boxShadow = `0 0 15px ${createRGB()}`;
+		}
+	}
+	//CHOSE MOVING DIRECTION
+	let previousPositionX = Math.random() > 0.5 ? "right" : "left";
+	let previousPositionY = Math.random() > 0.5 ? "up" : "down";
+
+
+	//START MOVING
+	setInterval(()=>{ //MOVE X FUNCTION
+		let boxPosition = {left: parseInt(box.style.left), top: parseInt(box.style.top)};
+		let anotherDivsPosition = [];
+		for (let i in anotherDivs){
+			anotherDivsPosition.push({left: parseInt(anotherDivs[i].style.left), top: parseInt(anotherDivs[i].style.top)});
+		};
+		let direction = checkDirection();
+
+		setTimeout(()=>{
+			if (direction == "right"){
+				box.style.left = `${++boxPosition.left}px`;
+				previousPositionX = "left"
+			}else if(direction == "left"){
+				box.style.left = `${--boxPosition.left}px`;
+				previousPositionX = "right"
+			}
+		}, 1);
+
+		function checkDirection(){
+			if (previousPositionX == "left"){
+				if (boxPosition.left >= (scrollWidth - 132)){
+					return "left";
+				}else{
+					for (let i in anotherDivsPosition){
+						if (boxPosition.left + 131 >= anotherDivsPosition[i].left && boxPosition.left + 131 <= anotherDivsPosition[i].left + 5){
+							if (boxPosition.top > anotherDivsPosition[i].top - 130 && boxPosition.top < anotherDivsPosition[i].top + 130){
+								return "left";
+							}
+						}
+					}
+					return "right";
+				}
+			}else if(previousPositionX == "right"){
+				if (boxPosition.left <= 0){
+					return "right";
+				}else{
+					for (let i in anotherDivsPosition){
+						if (anotherDivsPosition[i].left + 131 >= boxPosition.left && anotherDivsPosition[i].left + 131 <= boxPosition.left + 5){
+							if (boxPosition.top > anotherDivsPosition[i].top - 130 && boxPosition.top < anotherDivsPosition[i].top + 130){
+								return "right";
+							}
+						}
+					}
+				return "left";
+				}
+			}
+		}
+	},1);
+
+
+
+	setInterval(()=>{ //MOVE Y FUNCTION
+		let boxPosition = {left: parseInt(box.style.left), top: parseInt(box.style.top)};
+		let anotherDivsPosition = [];
+		for (let i in anotherDivs){
+			anotherDivsPosition.push({left: parseInt(anotherDivs[i].style.left), top: parseInt(anotherDivs[i].style.top)});
+		}
+		let direction = checkDirection();
+
+		setTimeout(()=>{
+			if (direction == "down"){
+				box.style.top = `${++boxPosition.top}px`;
+				previousPositionY = "up"
+			}else if(direction == "up"){
+				box.style.top = `${--boxPosition.top}px`;
+				previousPositionY = "down"
+			}
+		}, 1);
+
+		function checkDirection(){
+			if (previousPositionY == "up"){
+				if (boxPosition.top >= (scrollHeight - 132)){
+					return "up";
+				}else{
+					for (let i in anotherDivsPosition){
+						if (boxPosition.top + 131 >= anotherDivsPosition[i].top && boxPosition.top + 131 <= anotherDivsPosition[i].top + 5){
+							if (boxPosition.left > anotherDivsPosition[i].left - 130 && boxPosition.left < anotherDivsPosition[i].left + 130){
+								return "up";
+							}
+						}
+					}
+					return "down";
+				}
+			}else if(previousPositionY == "down"){
+				if (boxPosition.top <= 0){
+					return "down";
+				}else{
+					for (let i in anotherDivsPosition){
+						if (anotherDivsPosition[i].top + 131 >= boxPosition.top && anotherDivsPosition[i].top + 131 <= boxPosition.top + 5){
+							if (boxPosition.left > anotherDivsPosition[i].left - 130 && boxPosition.left < anotherDivsPosition[i].left + 130){
+								return "down";
+							}
+						}
+					}
+				return "up";
+				}
+			}
+		}
+	},1);
+}
+function createRGB(){
+	return `rgb(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)})`;
+}
+</script>
+</html>
